@@ -94,7 +94,7 @@ code { background: var(--surface); border: 1px solid var(--line); border-radius:
   </footer>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/onnxruntime-web/1.19.2/ort.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/onnxruntime-web/1.24.1/ort.min.js"></script>
 <script>
 (function () {
   'use strict';
@@ -195,17 +195,26 @@ code { background: var(--surface); border: 1px solid var(--line); border-radius:
   let normalize = false;
 
   async function loadModel() {
-    if (!window.ort) return;
+    if (!window.ort) {
+      statusEl.textContent = '데모 모드 — 추론 라이브러리(ort) 로드 실패';
+      return;
+    }
     try {
-      const head = await fetch('model.onnx', { method: 'HEAD' });
-      const type = head.headers.get('content-type') || '';
-      if (!head.ok || type.includes('text/html')) return;   // SPA fallback 등으로 HTML이 오는 경우
-      session = await ort.InferenceSession.create('model.onnx');
+      const res = await fetch('model.onnx');
+      const type = res.headers.get('content-type') || '';
+      if (!res.ok || type.includes('text/html')) {
+        statusEl.textContent = '모델 파일 없음 (' + res.status + ') — 데모 모드로 동작 중';
+        return;
+      }
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      session = await ort.InferenceSession.create(bytes);
       inputName = session.inputNames[0];
       statusEl.textContent = '모델 로드 완료 — 실제 모델로 인식 중';
       statusEl.classList.add('is-ready');
     } catch (e) {
       session = null;
+      console.error('model.onnx load failed:', e);
+      statusEl.textContent = '모델을 읽지 못했습니다 — 데모 모드 (F12 콘솔 참고)';
     }
   }
 
