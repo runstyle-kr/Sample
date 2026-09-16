@@ -18,7 +18,7 @@ python -m http.server 8000
 
 `index.html`을 더블클릭해도 됩니다(데모 모드는 동작, model.onnx 로드는 서버 필요).
 
-## 2. GitHub에 올리기
+## 2. GitHub에 올리기 
 
 ```powershell
 git init
